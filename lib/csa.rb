@@ -159,7 +159,7 @@ class App
     project = Xcodeproj::Project.open(project_path)
     project.targets.each do |target|
       target.build_configurations.each do |config|
-        config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.#{@organization.downcase.gsub(/[^a-zA-Z0-9]/, "_")}.#{@name}"
+        config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.#{@organization.downcase.gsub(/[^a-zA-Z0-9]/, "-")}.#{@name}"
       end
     end
     project.save
@@ -209,7 +209,7 @@ class App
   def add_fastlane
     return nil unless system "which fastlane > /dev/null"
     question = CLI::UI.fmt("{{green:Do you want to add fastlane to your project? (y/n)}}?")
-    answer = CLI::UI.ask(question, default: "y")
+    answer = CLI::UI.ask(question, default: "n")
     return nil unless answer == "y"
     Dir.chdir("#{@name}") do |_|
       system "fastlane init"
@@ -218,7 +218,7 @@ class App
 
   def open_project
     project = Dir.glob("./**/**/#{@name}.xcworkspace").first
-    project = Dir.glob("./**/**/#{@name}.xcodeproj") unless Dir.glob(project).any?
+    project = Dir.glob("./**/**/#{@name}.xcodeproj").first if project.nil?
     system "open #{project}"
     Dir.chdir("#{@name}") do |_|
       system "open ."
