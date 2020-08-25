@@ -6,12 +6,12 @@ require "xcodeproj"
 require "cli/ui"
 require "date"
 require "optparse"
-require "ostruct"
 
 class App
-  def initialize(name, template_url)
-    @name = name
+  def initialize(name: "", template_url: "", template_dir: "")
+    @name = name.capitalize
     @template_url = template_url
+    @template_dir = template_dir
   end
 
   def run
@@ -45,7 +45,13 @@ class App
         exit(0)
       end
     end
-    system "git clone #{@template_url} #{@name}"
+    if !@template_dir.empty?
+      system "cp -R #{@template_dir} #{@name}"
+    elsif !@template_url.empty?
+      system "git clone #{@template_url} #{@name}"
+    else
+      exit(0)
+    end
     remove_userdata
   end
 
@@ -161,7 +167,7 @@ class App
     project = Xcodeproj::Project.open(project_path)
     project.targets.each do |target|
       target.build_configurations.each do |config|
-        config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.#{@organization.downcase.gsub(/[^a-zA-Z0-9]/, "-")}.#{@name}"
+        config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.#{@organization.downcase.gsub(/[^a-zA-Z0-9]/, "-")}.#{@name.downcase}"
       end
     end
     project.save
@@ -233,21 +239,24 @@ class App
 end
 
 # ============== MAIN ==============
-args = Hash[ARGV.join(" ").scan(/--?([^=\s]+)(?:="(.*?)"+)?/)]
-
-options = OpenStruct.new
+options = {}
 OptionParser.new do |opt|
-  opt.on("-f", "--first_name FIRSTNAME", "The first name") { |o| options.first_name = o }
-  opt.on("-l", "--last_name LASTNAME", "The last name") { |o| options.last_name = o }
+  opt.on_tail("-h", "--help", "Prints help") { puts opt; exit }
+  opt.on("-n", "--name NAME", "The Name of the project") { |o| options[:name] = o }
+  opt.on("-d", "--dir DIR", "The DIR of the template") { |o| raise "Directory does NOT exist" unless File.directory?(o); options[:dir] = o }
+  opt.on("-u", "--url URL", "The URL of the template") { |o| raise "Git is required" unless system "which git > /dev/null"; options[:url] = o }
 end.parse!
 
-puts options
-puts args
+if options.empty?
+  project_name = ARGV[0] ||= "Demo"
+  template_url = ARGV[1] ||= "https://github.com/dianyij/swift-template.git"
+  app = App.new(name: project_name, template_url: template_url)
+else
+  project_name = options[:name] ||= ARGV[0]
+  template_dir = options[:dir] ||= ""
+  template_url = options[:url] ||= ""
 
-# raise CLI::UI.fmt("{{red:Git is required}}") unless system "which git > /dev/null"
-# if ARGV.length >= 0
-#   project_name = ARGV[0] ? ARGV[0] : "Demo"
-#   template_url = ARGV[1] ? ARGV[1] : "https://github.com/dianyij/swift-template.git"
-#   app = App.new(project_name, template_url)
-#   app.run
-# end
+  raise "Url or Dir is required" if options[:url].empty? && options[:dir].empty?
+  app = App.new(name: project_name, template_url: template_url, template_dir: template_dir)
+end
+app.run
