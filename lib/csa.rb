@@ -5,6 +5,8 @@ require "gli"
 require "xcodeproj"
 require "cli/ui"
 require "date"
+require "optparse"
+require "ostruct"
 
 class App
   def initialize(name, template_url)
@@ -186,7 +188,11 @@ class App
         question = CLI::UI.fmt("{{green:Repository url for the project: (enter to skip)?}}")
         @repo_url = CLI::UI.ask(question)
         @repo_url.strip!
-        system "git remote add origin #{@repo_url}" unless @repo_url.empty?
+
+        unless @repo_url.empty?
+          system "git remote add origin #{@repo_url}"
+          system "git push --set-upstream origin master"
+        end
       end
     end
   end
@@ -227,10 +233,21 @@ class App
 end
 
 # ============== MAIN ==============
-raise CLI::UI.fmt("{{red:Git is required}}") unless system "which git > /dev/null"
-if ARGV.length >= 0
-  project_name = ARGV[0] ? ARGV[0] : "Demo"
-  template_url = ARGV[1] ? ARGV[1] : "https://github.com/dianyij/swift-template.git"
-  app = App.new(project_name, template_url)
-  app.run
-end
+args = Hash[ARGV.join(" ").scan(/--?([^=\s]+)(?:="(.*?)"+)?/)]
+
+options = OpenStruct.new
+OptionParser.new do |opt|
+  opt.on("-f", "--first_name FIRSTNAME", "The first name") { |o| options.first_name = o }
+  opt.on("-l", "--last_name LASTNAME", "The last name") { |o| options.last_name = o }
+end.parse!
+
+puts options
+puts args
+
+# raise CLI::UI.fmt("{{red:Git is required}}") unless system "which git > /dev/null"
+# if ARGV.length >= 0
+#   project_name = ARGV[0] ? ARGV[0] : "Demo"
+#   template_url = ARGV[1] ? ARGV[1] : "https://github.com/dianyij/swift-template.git"
+#   app = App.new(project_name, template_url)
+#   app.run
+# end
