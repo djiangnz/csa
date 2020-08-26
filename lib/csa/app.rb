@@ -20,10 +20,10 @@ class App
   end
 
   def validate_project_name
-    raise CLI::UI.fmt("{{red: Name is required}}") unless @name
-    raise CLI::UI.fmt("{{red: Project name cannot contain spaces}}") if @name =~ /\s/
-    raise CLI::UI.fmt("{{red: Project name cannot begin with a '.'}}") if @name[0, 1] == "."
-    raise CLI::UI.fmt("{{red: Project name should only contain numbers and letters}}") if @name =~ /[^a-zA-Z0-9]/
+    raise "Name is required" unless @name
+    raise "Project name cannot contain spaces" if @name =~ /\s/
+    raise "Project name cannot begin with a '.'" if @name[0, 1] == "."
+    raise "Project name should only contain numbers and letters" if @name =~ /[^a-zA-Z0-9]/
   end
 
   def setup_template
@@ -189,7 +189,7 @@ class App
     if answer.downcase == "y"
       Dir.chdir("#{@name}") do |_|
         system "git init > /dev/null"
-        puts "Git has been Initialized"
+        puts "Initialized empty Git repository in ./#{@name}/.git/"
         question = CLI::UI.fmt("{{green:Repository url for the project: (enter to skip)?}}")
         @repo_url = CLI::UI.ask(question)
         @repo_url.strip!
@@ -206,7 +206,7 @@ class App
     return nil unless system "which pod > /dev/null"
     Dir.chdir("#{@name}") do |_|
       if File.exists?("Podfile")
-        question = CLI::UI.fmt("{{green:Podfile detected, do you want to install pods now}}?")
+        question = CLI::UI.fmt("{{green:Podfile detected, do you want to install pods now?}}")
         answer = CLI::UI.ask(question, options: %w(install skip))
         case answer
         when "install"
@@ -219,7 +219,7 @@ class App
 
   def add_fastlane
     return nil unless system "which fastlane > /dev/null"
-    question = CLI::UI.fmt("{{green:Do you want to add fastlane to your project? (y/n)}}?")
+    question = CLI::UI.fmt("{{green:Do you want to add fastlane to your project?}} (y/n)")
     answer = CLI::UI.ask(question, default: "n")
     return nil unless answer == "y"
     Dir.chdir("#{@name}") do |_|
