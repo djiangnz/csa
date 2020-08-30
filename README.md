@@ -1,4 +1,4 @@
-# Create Swift App
+# [Create Swift App](https://rubygems.org/gems/csa)
 
 a command line tool helps you create a swift app from a template
 
