@@ -8,7 +8,7 @@ require "date"
 
 class App
   def initialize(name: "", template_dir: "", template_url: "")
-    @name = name.capitalize
+    @name = name.slice(0,1).capitalize + name.slice(1..-1)
     @template_dir = template_dir
     @template_url = template_url
   end
@@ -38,16 +38,20 @@ class App
       override = CLI::UI.ask(question, default: "n")
       if override.downcase == "y"
         puts CLI::UI.fmt("{{green:rm -rf ./#{@name}}}")
-        puts CLI::UI.fmt("removing #{@name}")
         system "rm -rf ./#{@name}"
       else
         exit(0)
       end
     end
-    if !@template_dir.empty?
+
+    if !@template_dir.nil? && !@template_dir.empty?
+      puts CLI::UI.fmt("{{green:cp -R #{@template_dir} #{@name}}}")
       system "cp -R #{@template_dir} #{@name}"
+      system "rm -rf ./#{@name}/Pods"
     elsif !@template_url.empty?
+      puts CLI::UI.fmt("{{green:git clone #{@template_url} #{@name}}}")
       system "git clone #{@template_url} #{@name}"
+      system "rm -rf ./#{@name}/Pods"
     else
       exit(0)
     end
@@ -116,7 +120,7 @@ class App
     @author.strip!
     @organization.strip!
     @author = "AUTHOR" if @author.empty?
-    @organization = "ORG NAME" if @organization.empty?
+    @organization = "ORG" if @organization.empty?
   end
 
   def rename_files(path = Pathname("./#{@name}"))
@@ -142,8 +146,9 @@ class App
     begin
       file = File.new("#{path}_new", "w+")
       origin = File.open(path, "r:UTF-8")
+      today = Date.today.strftime("%d/%m/%y")
       origin.each do |line|
-        line = "//  Created by #{@author} on #{Date.today}." if /^\/\/ {2}Created by/ =~ line
+        line = "//  Created by #{@author} on #{today}." if /^\/\/ {2}Created by/ =~ line
         line = "//  Copyright © #{Time.new.strftime("%Y")} #{@organization}. All rights reserved." if /^\/\/ {2}Copyright ©/ =~ line
         line.gsub!(Regexp.new(Regexp.escape(@template_name), Regexp::IGNORECASE), @name)
         line.gsub!(Regexp.new(Regexp.escape(@template_name_other), Regexp::IGNORECASE), @name)
@@ -164,6 +169,7 @@ class App
     puts CLI::UI.fmt("{{cyan:Let's setup your bundle identifiers}}")
     project_path = Dir.glob("./#{@name}/**/**/#{@name}.xcodeproj").first
     project = Xcodeproj::Project.open(project_path)
+    project.root_object.attributes['ORGANIZATIONNAME'] = @organization
     project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.#{@organization.downcase.gsub(/[^a-zA-Z0-9]/, "-")}.#{@name.downcase}"
@@ -210,6 +216,7 @@ class App
         answer = CLI::UI.ask(question, options: %w(install skip))
         case answer
         when "install"
+          system "pod deintegrate"
           system "pod install"
         else break
         end
