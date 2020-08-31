@@ -235,11 +235,16 @@ class App
   end
 
   def open_project
-    project = Dir.glob("./**/**/#{@name}.xcworkspace").first
-    project = Dir.glob("./**/**/#{@name}.xcodeproj").first if project.nil?
-    system "open #{project}"
-    Dir.chdir("#{@name}") do |_|
-      system "open ."
+    begin
+      Dir.chdir("#{@name}") do |_|
+        system "open ."
+      end
+      project = Dir.glob("./**/**/#{@name}.xcworkspace").first
+      project = Dir.glob("./**/**/#{@name}.xcodeproj").first if project.nil?
+      system "open #{project}"
+    rescue Exception
+      # ignore
     end
   end
+
 end
