@@ -5,10 +5,11 @@ require "gli"
 require "xcodeproj"
 require "cli/ui"
 require "date"
+require "csa/ext/string"
 
 class App
   def initialize(name: "", template_dir: "", template_url: "")
-    @name = name.slice(0,1).capitalize + name.slice(1..-1)
+    @name = name.capitalize_first
     @template_dir = template_dir
     @template_url = template_url
   end
