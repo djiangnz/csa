@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    csa (0.0.7)
+    csa (0.0.8)
       cli-ui (~> 1.3)
       gli (~> 2.19)
       xcodeproj (~> 1.18)

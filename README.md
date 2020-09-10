@@ -27,5 +27,10 @@ csa [options]
 e.g.
 
 1. `csa`
-2. `csa demo -u https:...`
-3. `csa demo -d /a template dir/`
+1. `csa demo`
+1. `csa demo -u https:...`
+1. `csa demo -d /a template dir/`
+
+## Testing
+
+run `rspec --format doc`
