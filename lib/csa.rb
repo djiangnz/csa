@@ -6,4 +6,4 @@ require "date"
 
 # ============== MAIN ==============
 params = Parser.getParams
-App.new(name: params[:project_name], template_dir: params[:template_dir], template_url: params[:template_url]).run
+App.new(params).run

@@ -8,10 +8,10 @@ require "date"
 require "csa/ext/string"
 
 class App
-  def initialize(name: "", template_dir: "", template_url: "")
-    @name = name.capitalize_first
-    @template_dir = template_dir
-    @template_url = template_url
+  def initialize(options)
+    @name = options[:project_name].capitalize_first
+    @template_url = options[:template_url]
+    @use_default = options[:use_default]
   end
 
   def run
@@ -45,11 +45,7 @@ class App
       end
     end
 
-    if !@template_dir.nil? && !@template_dir.empty?
-      puts CLI::UI.fmt("{{green:cp -R #{@template_dir} #{@name}}}")
-      system "cp -R #{@template_dir} #{@name}"
-      system "rm -rf ./#{@name}/Pods"
-    elsif !@template_url.empty?
+    unless @template_url.empty?
       puts CLI::UI.fmt("{{green:git clone #{@template_url} #{@name}}}")
       system "git clone #{@template_url} #{@name}"
       system "rm -rf ./#{@name}/Pods"
@@ -114,6 +110,13 @@ class App
   end
 
   def get_project_info
+    if @use_default
+      @author = "AUTHOR"
+      @organization = "ORG"
+      return
+    end
+
+    # get authon and org name
     question_author = CLI::UI.fmt("{{green:Author for the project:}}")
     question_orgname = CLI::UI.fmt("{{green:Organization Name for the project:}}")
     @author = CLI::UI.ask(question_author)
@@ -170,13 +173,16 @@ class App
     puts CLI::UI.fmt("{{cyan:Let's setup your bundle identifiers}}")
     project_path = Dir.glob("./#{@name}/**/**/#{@name}.xcodeproj").first
     project = Xcodeproj::Project.open(project_path)
-    project.root_object.attributes['ORGANIZATIONNAME'] = @organization
+    project.root_object.attributes["ORGANIZATIONNAME"] = @organization
     project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"] = "com.#{@organization.downcase.gsub(/[^a-zA-Z0-9]/, "-")}.#{@name.downcase}"
       end
     end
     project.save
+    return if @use_default
+
+    # change bundle identifier
     project.targets.each do |target|
       target.build_configurations.each do |config|
         original_bundle_identifier = config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"]
@@ -189,7 +195,13 @@ class App
   end
 
   def add_git
-    return nil if Dir.exist?(Pathname("./#{@name}/.git"))
+    return if Dir.exist?(Pathname("./#{@name}/.git"))
+
+    if @use_default
+      system "git init > /dev/null"
+      puts "Initialized empty Git repository in ./#{@name}/.git/"
+      return
+    end
 
     question = CLI::UI.fmt("{{green:Do you want to use git?}} (y/n)")
     answer = CLI::UI.ask(question, default: "y")
@@ -200,7 +212,6 @@ class App
         question = CLI::UI.fmt("{{green:Repository url for the project: (enter to skip)?}}")
         @repo_url = CLI::UI.ask(question)
         @repo_url.strip!
-
         unless @repo_url.empty?
           system "git remote add origin #{@repo_url}"
           system "git push --set-upstream origin master"
@@ -210,9 +221,15 @@ class App
   end
 
   def install_pods
-    return nil unless system "which pod > /dev/null"
+    return unless system "which pod > /dev/null"
     Dir.chdir("#{@name}") do |_|
       if File.exists?("Podfile")
+        if @use_default
+          system "pod deintegrate"
+          system "pod install"
+          return
+        end
+
         question = CLI::UI.fmt("{{green:Podfile detected, do you want to install pods now?}}")
         answer = CLI::UI.ask(question, options: %w(install skip))
         case answer
@@ -226,10 +243,11 @@ class App
   end
 
   def add_fastlane
-    return nil unless system "which fastlane > /dev/null"
+    return unless system "which fastlane > /dev/null"
+    return if @use_default
     question = CLI::UI.fmt("{{green:Do you want to add fastlane to your project?}} (y/n)")
     answer = CLI::UI.ask(question, default: "n")
-    return nil unless answer == "y"
+    return unless answer == "y"
     Dir.chdir("#{@name}") do |_|
       system "fastlane init"
     end
@@ -247,5 +265,4 @@ class App
       # ignore
     end
   end
-
 end

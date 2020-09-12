@@ -11,7 +11,7 @@ install it yourself as:
 ## Usage
 
 ```shell
-csa [Project Name] [default template url]
+csa [Project Name] [default template URL]
 ```
 
 or
@@ -19,8 +19,8 @@ or
 ```shell
 csa [options]
     -n, --name NAME                  The Name of the project
-    -d, --dir DIR                    The DIR of the template
     -u, --url URL                    The URL of the template
+    -y, --yes                        Use default settings
     -h, --help                       Prints help
 ```
 
@@ -28,8 +28,8 @@ e.g.
 
 1. `csa`
 1. `csa demo`
+1. `csa demo -y`
 1. `csa demo -u https:...`
-1. `csa demo -d /a template dir/`
 
 ## Testing
 
