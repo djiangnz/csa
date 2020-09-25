@@ -116,7 +116,7 @@ class App
       return
     end
 
-    # get authon and org name
+    # get author and org name
     question_author = CLI::UI.fmt("{{green:Author for the project:}}")
     question_orgname = CLI::UI.fmt("{{green:Organization Name for the project:}}")
     @author = CLI::UI.ask(question_author)
