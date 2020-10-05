@@ -170,7 +170,6 @@ class App
   end
 
   def set_bundle_identifiers
-    puts CLI::UI.fmt("{{cyan:Let's setup your bundle identifiers}}")
     project_path = Dir.glob("./#{@name}/**/**/#{@name}.xcodeproj").first
     project = Xcodeproj::Project.open(project_path)
     project.root_object.attributes["ORGANIZATIONNAME"] = @organization
@@ -183,6 +182,7 @@ class App
     return if @use_default
 
     # change bundle identifier
+    puts CLI::UI.fmt("{{cyan:Let's setup your bundle identifiers}}")
     project.targets.each do |target|
       target.build_configurations.each do |config|
         original_bundle_identifier = config.build_settings["PRODUCT_BUNDLE_IDENTIFIER"]
@@ -198,8 +198,10 @@ class App
     return if Dir.exist?(Pathname("./#{@name}/.git"))
 
     if @use_default
-      system "git init > /dev/null"
-      puts "Initialized empty Git repository in ./#{@name}/.git/"
+      Dir.chdir("#{@name}") do |_|
+        system "git init > /dev/null"
+        puts "Initialized empty Git repository in ./#{@name}/.git/"
+      end
       return
     end
 
