@@ -56,8 +56,8 @@ class App
   end
 
   def remove_userdata
-    system "rm -rf ./**/.git"
-    system "rm -rf ./**/.DS_Store"
+    system "rm -rf ./#{@name}/**/.git"
+    system "rm -rf ./#{@name}/**/.DS_Store"
     system "rm -rf ./#{@name}/**/xcuserdata/"
     system "rm -rf ./#{@name}/**/**/xcuserdata/"
     system "rm -rf ./#{@name}/**/**/xcshareddata"

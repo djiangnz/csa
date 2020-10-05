@@ -17,19 +17,20 @@ csa [Project Name] [default template URL]
 or
 
 ```shell
-csa [options]
+Usage: csa [options]
     -n, --name NAME                  The Name of the project
     -u, --url URL                    The URL of the template
-    -y, --yes                        Use default settings
     -h, --help                       Prints help
+    -y, --yes                        Use default settings
+    -v, --version                    Prints Version
 ```
 
 e.g.
 
 1. `csa`
-1. `csa demo`
-1. `csa demo -y`
-1. `csa demo -u https:...`
+1. `csa MyApp`
+1. `csa MyApp -y`
+1. `csa MyApp -u https:...`
 
 ## Testing
 
