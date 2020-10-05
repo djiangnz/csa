@@ -28,7 +28,6 @@ class App
   end
 
   def setup_template
-    remove_userdata
     clone_template
     get_template_info
   end
@@ -48,7 +47,6 @@ class App
     unless @template_url.empty?
       puts CLI::UI.fmt("{{green:git clone #{@template_url} #{@name}}}")
       system "git clone #{@template_url} #{@name}"
-      system "rm -rf ./#{@name}/Pods"
     else
       exit(0)
     end
@@ -56,11 +54,14 @@ class App
   end
 
   def remove_userdata
-    system "rm -rf ./#{@name}/**/.git"
-    system "rm -rf ./#{@name}/**/.DS_Store"
-    system "rm -rf ./#{@name}/**/xcuserdata/"
-    system "rm -rf ./#{@name}/**/**/xcuserdata/"
-    system "rm -rf ./#{@name}/**/**/xcshareddata"
+    Dir.chdir("#{@name}") do |_|
+      system "rm -rf ./Pods"
+      system "rm -rf ./**/.git"
+      system "rm -rf ./**/.DS_Store"
+      system "rm -rf ./**/xcuserdata/"
+      system "rm -rf ./**/**/xcuserdata/"
+      system "rm -rf ./**/**/xcshareddata"
+    end
   end
 
   def get_template_info
