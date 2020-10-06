@@ -37,8 +37,7 @@ class App
       question = CLI::UI.fmt("{{green:Folder #{@name} already exists, overwrite? (y/n)}}")
       override = CLI::UI.ask(question, default: "n")
       if override.downcase == "y"
-        puts CLI::UI.fmt("{{green:rm -rf ./#{@name}}}")
-        system "rm -rf ./#{@name}"
+        delete_file(@name)
       else
         exit(0)
       end
@@ -55,13 +54,17 @@ class App
 
   def remove_userdata
     Dir.chdir("#{@name}") do |_|
-      system "rm -rf ./Pods"
-      system "rm -rf ./**/.git"
-      system "rm -rf ./**/.DS_Store"
-      system "rm -rf ./**/xcuserdata/"
-      system "rm -rf ./**/**/xcuserdata/"
-      system "rm -rf ./**/**/xcshareddata"
+      delete_file("Pods")
+      delete_file(".git")
+      delete_file(".DS_Store")
+      delete_file("xcuserdata")
+      delete_file("xcshareddata")
     end
+  end
+
+  def delete_file(name)
+    puts CLI::UI.fmt("{{green:deleting #{name}}}")
+    system "find . -name #{name} -depth -exec rm -rf {} \\;"
   end
 
   def get_template_info
