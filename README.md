@@ -35,3 +35,7 @@ e.g.
 ## Testing
 
 run `rspec --format doc`
+
+
+TODO
+- Use Thor
